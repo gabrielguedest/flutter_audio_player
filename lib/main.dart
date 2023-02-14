@@ -1,13 +1,16 @@
+import 'dart:math' as math;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
+const imageUrl = 'https://persono-app.s3.amazonaws.com/images/relaxing-audio-02.png';
 
 void main() async {
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.example.audio',
-    androidNotificationChannelName: 'Audio playback',
+    androidNotificationChannelName: 'Aúdio playback',
     androidNotificationOngoing: true,
   );
 
@@ -51,55 +54,137 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            const Spacer(),
-            ValueListenableBuilder<ProgressBarState>(
-              valueListenable: _pageManager.progressNotifier, 
-              builder: (_, value, __) {
-                return ProgressBar(
-                  onSeek: _pageManager.seek,
-                  progress: value.current,
-                  buffered: value.buffered,
-                  total: value.total,
-                );
-              }
-            ),
-            ValueListenableBuilder<ButtonState>(
-              valueListenable: _pageManager.buttonNotifier,
-              builder: (_, value, __) {
-                switch (value) {
-                  case ButtonState.finished:
-                    return IconButton(
-                      icon: const Icon(Icons.restart_alt),
-                      iconSize: 32.0,
-                      onPressed: _pageManager.play,
-                    );
-                  case ButtonState.loading:
-                    return Container(
-                      margin: const EdgeInsets.all(8.0),
-                      width: 32.0,
-                      height: 32.0,
-                      child: const CircularProgressIndicator(),
-                    );
-                  case ButtonState.paused:
-                    return IconButton(
-                      icon: const Icon(Icons.play_arrow),
-                      iconSize: 32.0,
-                      onPressed: _pageManager.play,
-                    );
-                  case ButtonState.playing:
-                    return IconButton(
-                      icon: const Icon(Icons.pause),
-                      iconSize: 32.0,
-                      onPressed: _pageManager.pause,
-                    );
+      backgroundColor: const Color(0xFF333333),
+      body: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Spacer(flex: 3),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: Image.network(
+                  imageUrl,
+                  height: 350,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 24.0, top: 32.0),
+                child: Text(
+                  'Aúdio para dormir',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+              ValueListenableBuilder<ProgressBarState>(
+                valueListenable: _pageManager.progressNotifier, 
+                builder: (_, value, __) {
+                  return ProgressBar(
+                    onSeek: _pageManager.seek,
+                    progress: value.current,
+                    buffered: value.buffered,
+                    total: value.total,
+                    progressBarColor: const Color(0xFF009dff),
+                    thumbRadius: 7,
+                    baseBarColor: const Color(0xFFcdcbcc),
+                    bufferedBarColor: Colors.black.withOpacity(0.2),
+                    timeLabelPadding: 10,
+                    timeLabelTextStyle: const TextStyle(
+                      color: Color(0xFFcdcbcc),
+                    ),
+                    thumbGlowColor: Colors.black.withOpacity(0.5),
+                    thumbGlowRadius: 7,
+                  );
                 }
-              },
-            ),
-          ]
-        )
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _pageManager.advanceSeconds(10),
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.rotationY(math.pi),
+                      child: const Icon(
+                        Icons.refresh,
+                        size: 28,
+                        color: Color(0xFF009dff),
+                      ),
+                    ),
+                  ),
+                  ValueListenableBuilder<ButtonState>(
+                    valueListenable: _pageManager.buttonNotifier,
+                    builder: (_, state, __) {
+
+                      if (state == ButtonState.loading) {
+                        return CupertinoButton(
+                          onPressed: null,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF009dff),
+                              borderRadius: BorderRadius.circular(60)
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            child: const SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        );
+                      }
+
+                      final icon = {
+                        ButtonState.finished: Icons.restart_alt,
+                        ButtonState.playing: Icons.pause,
+                        ButtonState.paused: Icons.play_arrow, 
+                      };
+
+                      final action = {
+                        ButtonState.finished: _pageManager.play,
+                        ButtonState.playing: _pageManager.pause,
+                        ButtonState.paused: _pageManager.play, 
+                      };
+
+                      return CupertinoButton(
+                        onPressed: action[state],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF009dff),
+                            borderRadius: BorderRadius.circular(60)
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            icon[state]!,
+                            size: 48,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  CupertinoButton(
+                    onPressed: () => _pageManager.advanceSeconds(10),
+                    child: const Icon(
+                      Icons.refresh,
+                      size: 28,
+                      color: Color(0xFF009dff),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(flex: 1),
+            ]
+          )
+        ),
       ),
     );
   }
@@ -137,7 +222,7 @@ class PageManager {
         id: '1',
         album: 'Audios relaxantes',
         title: 'Audio para dormir',
-        artUri: Uri.parse('https://persono-app.s3.amazonaws.com/images/relaxing-audio-01.png'),
+        artUri: Uri.parse(imageUrl),
       ),
     );
     await _audioPlayer.setAudioSource(audioSource);
@@ -188,6 +273,26 @@ class PageManager {
         total: totalDuration ?? Duration.zero,
       );
     });
+  }
+
+  void advanceSeconds(int seconds) {
+    var seekPosition = _audioPlayer.position + Duration(seconds: seconds);
+
+    if (seekPosition > (_audioPlayer.duration ?? Duration.zero)) {
+      seekPosition = _audioPlayer.duration ?? Duration.zero;
+    }
+
+    _audioPlayer.seek(seekPosition);
+  }
+
+  void returnSeconds(int seconds) {
+    var seekPosition = _audioPlayer.position - Duration(seconds: seconds);
+
+    if (seekPosition < Duration.zero) {
+      seekPosition = Duration.zero;
+    }
+
+    _audioPlayer.seek(seekPosition);
   }
 
   void play() {
