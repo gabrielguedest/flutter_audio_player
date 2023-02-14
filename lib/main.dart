@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 
-void main() {
+void main() async {
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.example.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +130,17 @@ class PageManager {
 
   void _init() async {
     _audioPlayer = AudioPlayer();
-    await _audioPlayer.setUrl(url);
+
+    final audioSource = LockCachingAudioSource(
+      Uri.parse(url),
+      tag: MediaItem(
+        id: '1',
+        album: 'Audios relaxantes',
+        title: 'Audio para dormir',
+        artUri: Uri.parse('https://persono-app.s3.amazonaws.com/images/relaxing-audio-01.png'),
+      ),
+    );
+    await _audioPlayer.setAudioSource(audioSource);
 
     _audioPlayer.playerStateStream.listen((playerState) {
       final isPlaying = playerState.playing;

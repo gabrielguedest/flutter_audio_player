@@ -37,6 +37,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   just_audio: ^0.9.31
+  just_audio_background:
   audio_video_progress_bar: ^0.9.0
 
 dev_dependencies:
